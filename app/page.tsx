@@ -37,12 +37,13 @@ export default function Home() {
   const [communityGiven, setCommunityGiven] = useState(980);
   const [modelPlans, setModelPlans] = useState(initialModelPlans);
   const [sourceModel, setSourceModel] = useState("GPT-5.6 Terra");
+  const [policyPercent, setPolicyPercent] = useState(10);
   const monthlyUsed = useMemo(() => 50000 - balance, [balance]);
   const percentUsed = Math.round((monthlyUsed / 50000) * 100);
-  const giftCap = 2500;
+  const giftCap = Math.floor(50000 * policyPercent / 100);
   const giftCapLeft = giftCap - communityGiven;
   const selectedModel = modelPlans.find((model) => model.name === sourceModel) ?? modelPlans[0];
-  const selectedModelCap = Math.floor(selectedModel.limit * .05);
+  const selectedModelCap = Math.floor(selectedModel.limit * policyPercent / 100);
   const selectedModelGiftable = Math.max(0, selectedModelCap - selectedModel.gifted);
   const maxGiftNow = Math.max(0, Math.min(safeToGift, giftCapLeft, selectedModelGiftable));
 
@@ -106,10 +107,14 @@ export default function Home() {
         </article>
       </section>
 
-      <section className="policy-strip" aria-label="Five percent gifting policy">
-        <div className="policy-badge">5%</div>
-        <div className="policy-copy"><p className="card-label">FAIR-SHARE LIMIT</p><h2>Every model allowance has its own 5% gift cap.</h2><p>For your 50,000-credit plan, that means up to 2,500 gifted credits per month.</p></div>
-        <div className="policy-meter"><div><span>{formatCredits(communityGiven)} gifted</span><strong>{formatCredits(giftCapLeft)} left</strong></div><div className="progress-track"><span style={{ width: `${Math.min(100, communityGiven / giftCap * 100)}%` }} /></div></div>
+      <section className="policy-strip" aria-label="Configurable gifting policy">
+        <div className="policy-badge">{policyPercent}%</div>
+        <div className="policy-copy"><p className="card-label">FLEXIBLE GIFTING POLICY</p><h2>You decide how much of each allowance can be shared.</h2><p>At the current setting, this 50,000-credit plan can gift up to {formatCredits(giftCap)} credits per month.</p></div>
+        <div className="policy-control">
+          <label htmlFor="policy-range"><span>Monthly share limit</span><strong>{policyPercent}%</strong></label>
+          <input id="policy-range" type="range" min="1" max="50" step="1" value={policyPercent} onChange={(event) => setPolicyPercent(Number(event.target.value))} />
+          <div className="policy-meter"><div><span>{formatCredits(communityGiven)} gifted</span><strong>{formatCredits(Math.max(0, giftCapLeft))} left</strong></div><div className="progress-track"><span style={{ width: `${Math.min(100, communityGiven / giftCap * 100)}%` }} /></div></div>
+        </div>
       </section>
 
       <div className="content-grid">
@@ -117,7 +122,7 @@ export default function Home() {
           <div className="panel-title-row"><div><p className="card-label">USAGE BY MODEL</p><h2>Where your credits went</h2></div><button className="quiet-button" onClick={() => showToast("Usage export prepared for August.")}>Export</button></div>
           <div className="usage-layout">
             <div className="donut" style={{ "--usage": `${percentUsed * 3.6}deg` } as React.CSSProperties}><div><strong>{percentUsed}%</strong><span>used</span></div></div>
-            <div className="model-list">{modelPlans.map((model) => { const cap = Math.floor(model.limit * .05); return <div className="model-row" key={model.name}><span className="model-dot" style={{ background: model.color }} /><div className="model-copy"><strong>{model.name}</strong><span>{model.detail} · {formatCredits(Math.max(0, cap - model.gifted))} giftable</span></div><strong className="model-credits">{formatCredits(model.credits)}</strong></div>; })}</div>
+            <div className="model-list">{modelPlans.map((model) => { const cap = Math.floor(model.limit * policyPercent / 100); return <div className="model-row" key={model.name}><span className="model-dot" style={{ background: model.color }} /><div className="model-copy"><strong>{model.name}</strong><span>{model.detail} · {formatCredits(Math.max(0, cap - model.gifted))} giftable</span></div><strong className="model-credits">{formatCredits(model.credits)}</strong></div>; })}</div>
           </div>
           <div className="week-chart" aria-label="Daily credits used this week">{[42, 68, 55, 88, 72, 36, 24].map((height, index) => <div className="day" key={index}><div className="bar-track"><span style={{ height: `${height}%` }} /></div><small>{["M", "T", "W", "T", "F", "S", "S"][index]}</small></div>)}</div>
         </section>
@@ -138,12 +143,12 @@ export default function Home() {
 
       <footer><div><strong>pool.</strong><p>Share access. Keep creating.</p></div><p className="legal-copy">Prototype uses app-managed demo credits. Existing OpenAI balances are not transferred or resold.</p></footer>
 
-      {giftOpen && <div className="modal-backdrop" role="presentation" onMouseDown={() => setGiftOpen(false)}><section className="gift-modal" role="dialog" aria-modal="true" aria-labelledby="gift-title" onMouseDown={(event) => event.stopPropagation()}><button className="modal-close" aria-label="Close gift dialog" onClick={() => setGiftOpen(false)}>×</button><p className="card-label">SEND A LITTLE MOMENTUM</p><h2 id="gift-title">Gift your spare credits</h2><p className="modal-intro">Your daily reserve and 5% monthly policy allow up to {formatCredits(maxGiftNow)} credits from this model.</p><form onSubmit={sendGift}>
+      {giftOpen && <div className="modal-backdrop" role="presentation" onMouseDown={() => setGiftOpen(false)}><section className="gift-modal" role="dialog" aria-modal="true" aria-labelledby="gift-title" onMouseDown={(event) => event.stopPropagation()}><button className="modal-close" aria-label="Close gift dialog" onClick={() => setGiftOpen(false)}>×</button><p className="card-label">SEND A LITTLE MOMENTUM</p><h2 id="gift-title">Gift your spare credits</h2><p className="modal-intro">Your daily reserve and current {policyPercent}% policy allow up to {formatCredits(maxGiftNow)} credits from this model.</p><form onSubmit={sendGift}>
         <label>Recipient<input value={recipient} onChange={(event) => setRecipient(event.target.value)} placeholder="Name or email" required /></label>
-        <label>Credit source<select value={sourceModel} onChange={(event) => setSourceModel(event.target.value)}>{modelPlans.map((model) => <option key={model.name} value={model.name}>{model.name} · {formatCredits(Math.max(0, Math.floor(model.limit * .05) - model.gifted))} giftable</option>)}</select></label>
+        <label>Credit source<select value={sourceModel} onChange={(event) => setSourceModel(event.target.value)}>{modelPlans.map((model) => <option key={model.name} value={model.name}>{model.name} · {formatCredits(Math.max(0, Math.floor(model.limit * policyPercent / 100) - model.gifted))} giftable</option>)}</select></label>
         <fieldset><legend>Amount</legend><div className="amount-options">{[100, 250, maxGiftNow].filter((value, index, all) => value > 0 && value <= maxGiftNow && all.indexOf(value) === index).map((value) => <button type="button" className={amount === value ? "selected" : ""} onClick={() => setAmount(value)} key={value}>{value}</button>)}</div><input className="amount-input" type="number" min="1" max={maxGiftNow} value={Math.min(amount, maxGiftNow)} onChange={(event) => setAmount(Number(event.target.value))} aria-label="Custom credit amount" /></fieldset>
         <label>Note <span>optional</span><textarea value={note} onChange={(event) => setNote(event.target.value)} rows={3} /></label>
-        <div className="gift-summary"><span>5% model cap</span><strong>{formatCredits(selectedModel.gifted)} of {formatCredits(selectedModelCap)} already gifted</strong></div><button className="primary-button wide" type="submit" disabled={maxGiftNow === 0}>Send {formatCredits(Math.min(amount, maxGiftNow))} credits</button>
+        <div className="gift-summary"><span>{policyPercent}% model policy</span><strong>{formatCredits(selectedModel.gifted)} of {formatCredits(selectedModelCap)} already gifted</strong></div><button className="primary-button wide" type="submit" disabled={maxGiftNow === 0}>Send {formatCredits(Math.min(amount, maxGiftNow))} credits</button>
       </form></section></div>}
       {toast && <div className="toast" role="status">✓ {toast}</div>}
     </main>

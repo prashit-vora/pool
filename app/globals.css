@@ -67,6 +67,10 @@ h1 { max-width:700px; margin:0; font-size:clamp(40px,5.2vw,67px); line-height:.9
 .policy-meter strong { color:var(--ink); }
 .policy-meter .progress-track { background:rgba(255,255,255,.65); }
 .policy-meter .progress-track span { background:var(--violet); }
+.policy-control { display:grid; gap:9px; }
+.policy-control>label { display:flex; justify-content:space-between; color:#6c6884; font-size:11px; }
+.policy-control>label strong { color:var(--ink); }
+.policy-control>input { width:100%; accent-color:var(--violet); cursor:pointer; }
 
 .content-grid { display:grid; grid-template-columns:1.8fr 1fr; gap:16px; margin-top:16px; }
 .panel { background:var(--white); border:1px solid var(--line); border-radius:14px; padding:25px; }

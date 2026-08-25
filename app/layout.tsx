@@ -11,13 +11,13 @@ export const metadata: Metadata = {
   icons: { icon: "/favicon.svg", shortcut: "/favicon.svg" },
   openGraph: {
     title: "Pool — Share unused AI credits",
-    description: "Track usage. Share up to 5%. Keep creating.",
+    description: "Track usage. Set flexible sharing limits. Keep creating.",
     images: [{ url: "/og.png", width: 1731, height: 909, alt: "Pool — Share access. Keep creating." }],
   },
   twitter: {
     card: "summary_large_image",
     title: "Pool — Share unused AI credits",
-    description: "Track usage. Share up to 5%. Keep creating.",
+    description: "Track usage. Set flexible sharing limits. Keep creating.",
     images: ["/og.png"],
   },
 };
